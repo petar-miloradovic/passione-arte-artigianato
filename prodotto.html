@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dettaglio prodotto — Passione Arte</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SheetJS per leggere CSV locale -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+          <img src="media/logo.svg" alt="logo" width="40" height="40" class="me-2">
+          <span class="brand-name">Passione Arte</span>
+        </a>
+      </div>
+    </nav>
+
+    <main class="container py-5">
+      <div id="productArea">Caricamento prodotto...</div>
+    </main>
+
+    <footer class="py-4">
+      <div class="container d-flex justify-content-between align-items-center">
+        <small class="text-muted">© 2025 Passione Arte</small>
+      </div>
+    </footer>
+
+    <script>
+      // Modalità locale: leggere CSV prodotti.csv nella root del progetto
+      const PRODUCTS_URL = 'prodotti.csv';
+
+      function getQueryParam(name){
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+      }
+
+      function parseImagesField(field){
+        if(!field) return [];
+        // split by comma or semicolon, trim
+        return field.split(/[,;]+/).map(s=>s.trim()).filter(Boolean);
+      }
+
+      function formatCHF(v){ return 'CHF ' + (Number(v)||0).toFixed(2); }
+
+      function addToCart(item){
+        try{
+          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const key = (item.titolo || item.title || '').trim();
+          if(!key) return;
+          const prezzo = parseFloat(item.prezzo || item.price || 0) || 0;
+          const existing = cart.find(i => i.key === key);
+          if(existing){ existing.qty = (existing.qty || 1) + 1; } else {
+            // determine image source: prefer item.images (array), otherwise parse item.image string
+            let imageSrc = 'media/product1.svg';
+            if(Array.isArray(item.images) && item.images.length>0) imageSrc = item.images[0];
+            else if(typeof item.image === 'string' && item.image.trim()) imageSrc = String(item.image).split(/[,;]+/)[0].trim();
+            else if(item.image) imageSrc = item.image;
+            cart.push({ key, titolo: key, descrizione: item.descrizione || item.desc || '', prezzo: prezzo, image: imageSrc || 'media/product1.svg', qty: 1 });
+          }
+          localStorage.setItem('cart', JSON.stringify(cart));
+          alert(key + ' aggiunto al carrello');
+        }catch(e){ console.error(e); }
+      }
+
+      async function loadProduct(){
+        const keyRaw = getQueryParam('key') || '';
+        const key = decodeURIComponent(keyRaw).trim().toLowerCase();
+        const area = document.getElementById('productArea');
+        try{
+          const res = await fetch(PRODUCTS_URL);
+          const text = await res.text();
+          const workbook = XLSX.read(text, { type: 'string' });
+          // scegli il foglio 'prodotti' (case-insensitive) o il primo foglio
+          const sheetName = workbook.SheetNames.find(n => (n||'').toLowerCase() === 'prodotti') || workbook.SheetNames[0];
+          const ws = workbook.Sheets[sheetName];
+          if(!ws){ area.innerHTML = '<p class="text-muted">Prodotto non trovato.</p>'; return; }
+          const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+          function mapRow(row){
+            const obj = {};
+            Object.keys(row).forEach(k => { obj[k.toLowerCase().trim().replace(/\s+/g,'_')] = row[k]; });
+            const out = {};
+            out.titolo = obj.titolo || obj.title || obj.nome || obj.name || obj.product || obj['product_name'] || '';
+            out.descrizione = obj.descrizione || obj.description || obj.desc || obj.note || '';
+            out.prezzo = obj.prezzo || obj.price || obj.prezzo_chf || obj.prezzo_sfr || obj['prezzo(chf)'] || '';
+            out.categoria = obj.categoria || obj.category || obj.tipo || '';
+
+            // Raccogli immagini: campo 'image' (comma-separated) e colonne image1..image10, foto, immagine
+            const images = [];
+            const pushIf = v => { if(v || v === 0) { const s = String(v).trim(); if(s) images.push(s); } };
+            if(obj.image){ // may be comma-separated
+              String(obj.image).split(/[,;]+/).map(s=>s.trim()).forEach(s=>{ if(s) images.push(s); });
+            }
+            if(obj.images){ String(obj.images).split(/[,;]+/).map(s=>s.trim()).forEach(s=>{ if(s) images.push(s); }); }
+            if(obj.foto) pushIf(obj.foto);
+            if(obj.immagine) pushIf(obj.immagine);
+            // image1..image10
+            for(let i=1;i<=10;i++){ const k = 'image'+i; if(obj[k]) pushIf(obj[k]); }
+
+            // unique and clean
+            out.images = images.map(s=>s.trim()).filter(Boolean);
+            out.image = out.images.length > 0 ? out.images[0] : (obj.image || obj.images || '');
+
+            return out;
+          }
+          const rows = raw.map(mapRow);
+
+          const prod = rows.find(r => ((r.titolo||r.title||'').toLowerCase() === key));
+          if(!prod){ area.innerHTML = '<p class="text-muted">Prodotto non trovato.</p>'; return; }
+
+          // assicurati di usare l'array `images` prodotto dalla mappatura;
+          // `prod.images` può essere già un array oppure un campo stringa
+          let images = [];
+          if(Array.isArray(prod.images)) images = prod.images.slice();
+          else images = parseImagesField(prod.image || prod.images || '');
+          if(!images || images.length===0) images = ['media/product1.svg'];
+
+          // Build carousel
+          let carouselIndicators = '';
+          let carouselItems = '';
+          images.forEach((src, i) => {
+            carouselIndicators += `<button type="button" data-bs-target="#productCarousel" data-bs-slide-to="${i}" ${i===0? 'class="active" aria-current="true"':''} aria-label="Slide ${i+1}"></button>`;
+            carouselItems += `
+              <div class="carousel-item ${i===0? 'active':''}">
+                <img src="${src}" class="d-block w-100" alt="immagine ${i+1}" style="height:420px; object-fit:cover; background:#e2e8f0">
+              </div>
+            `;
+          });
+
+          area.innerHTML = `
+            <div class="row">
+              <div class="col-md-6">
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                  <div class="carousel-indicators">${carouselIndicators}</div>
+                  <div class="carousel-inner">${carouselItems}</div>
+                  <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <h2 class="mb-2">${prod.titolo || prod.title || ''}</h2>
+                <div class="mb-3 text-muted">${formatCHF(prod.prezzo || prod.price || 0)}</div>
+                <p class="text-muted">${prod.descrizione || prod.desc || prod.description || ''}</p>
+                <div class="d-flex gap-2 mt-4">
+                  <button id="addBtn" class="btn btn-primary">Aggiungi al carrello</button>
+                  <a href="carrello.html" class="btn btn-outline-secondary">Vai al carrello</a>
+                </div>
+              </div>
+            </div>
+          `;
+
+          document.getElementById('addBtn').addEventListener('click', ()=> addToCart(prod));
+
+        }catch(err){ console.error(err); area.innerHTML = '<p class="text-muted">Errore nel caricamento del prodotto.</p>'; }
+      }
+
+      document.addEventListener('DOMContentLoaded', loadProduct);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

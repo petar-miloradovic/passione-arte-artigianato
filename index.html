@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Passione Arte — Oggetti artigianali</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SheetJS per leggere CSV locale -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <img src="media/logo.svg" alt="logo" width="40" height="40" class="me-2">
+          <span class="brand-name">Passione Arte</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMain">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shop">Shop</a></li>
+            <li class="nav-item"><a class="nav-link" href="#about">Chi siamo</a></li>
+            <li class="nav-item"><a class="nav-link" href="#contact">Contatti</a></li>
+          </ul>
+          <div class="d-flex align-items-center ms-3">
+            <a href="carrello.html" id="cartBtn" class="btn btn-outline-primary position-relative">
+              <!-- cart icon (inline SVG) -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
+                <path d="M0 1.5A.5.5 0 0 1 .5 1h1a.5.5 0 0 1 .485.379L2.89 5H14.5a.5.5 0 0 1 .49.598l-1.5 6A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.49-.402L1.61 2H.5a.5.5 0 0 1-.5-.5zM4.415 6l1.2 4.8a.5.5 0 0 0 .49.4h7.09l1.2-4.8H4.415z"/>
+                <circle cx="6" cy="13.5" r="1"/>
+                <circle cx="12" cy="13.5" r="1"/>
+              </svg>
+              <span id="cartCount" class="badge bg-danger text-white rounded-pill ms-2">0</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero-section text-white d-flex align-items-center">
+      <div class="container text-center">
+        <h1 class="display-5 fw-bold">Oggetti artigianali fatti con passione</h1>
+        <p class="lead mb-4">Scopri pezzi unici realizzati a mano da artigiani locali.</p>
+        <a href="#shop" class="btn btn-primary btn-lg">Acquista ora</a>
+      </div>
+    </header>
+
+    <!-- Featured products -->
+    <section id="shop" class="py-5">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+          <div>
+            <h2 class="h4 mb-0">Prodotti in evidenza</h2>
+            <small class="text-muted">Pezzi selezionati a mano</small>
+          </div>
+          <a href="#" class="btn btn-outline-secondary">Vedi tutto</a>
+        </div>
+
+        <div class="row g-4" id="productsRow">
+          <!-- Le card dei prodotti verranno inserite dinamicamente dal foglio Google (sheet: "prodotti"). -->
+        </div>
+      </div>
+    </section>
+
+    <!-- About small -->
+    <section id="about" class="py-5 bg-light">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <h3>Chi siamo</h3>
+            <p class="text-muted">Sosteniamo artigiani locali e promuoviamo lavori fatti a mano con cura e passione.</p>
+            <a href="#contact" class="btn btn-outline-primary">Contattaci</a>
+          </div>
+          <div class="col-md-6 text-center">
+            <img src="media/product1.svg" alt="artigianato" class="img-fluid" style="max-width:60%">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="py-4">
+      <div class="container d-flex justify-content-between align-items-center">
+        <small class="text-muted">© 2025 Passione Arte — Tutti i diritti riservati</small>
+        <div>
+          <a href="#" class="text-muted me-3">Facebook</a>
+          <a href="#" class="text-muted me-3">Instagram</a>
+          <a href="#" class="text-muted">Privacy</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Modalità locale: leggere da CSV (prodotti.csv) nella root del progetto
+      const PRODUCTS_URL = 'prodotti.csv';
+
+      function createProductCard(p){
+        const col = document.createElement('div');
+        col.className = 'col-12 col-sm-6 col-md-4';
+
+        const card = document.createElement('div');
+        card.className = 'card h-100 shadow-sm';
+
+        const key = (p.titolo || p.title || '').trim() || 'prodotto';
+
+        // image wrapped in link to product detail
+        const aImg = document.createElement('a');
+        aImg.href = `prodotto.html?key=${encodeURIComponent(key)}`;
+
+        const img = document.createElement('img');
+        img.className = 'card-img-top product-img';
+        img.alt = p.image || p.titolo || 'prodotto';
+        img.src = p.image || 'media/product1.svg';
+        // galleria on-hover: se ci sono più immagini, scorre al passaggio del mouse
+        if(p.images && Array.isArray(p.images) && p.images.length > 1){
+          let idx = 0;
+          let intervalId = null;
+          const cycle = () => {
+            idx = (idx + 1) % p.images.length;
+            try{ img.src = p.images[idx]; }catch(e){}
+          };
+          aImg.addEventListener('mouseenter', ()=>{
+            if(intervalId) return;
+            intervalId = setInterval(cycle, 800);
+          });
+          aImg.addEventListener('mouseleave', ()=>{
+            if(intervalId){ clearInterval(intervalId); intervalId = null; }
+            idx = 0;
+            img.src = p.images[0] || (p.image || 'media/product1.svg');
+          });
+        }
+        aImg.appendChild(img);
+
+        const body = document.createElement('div');
+        body.className = 'card-body d-flex flex-column';
+
+        const titleLink = document.createElement('a');
+        titleLink.href = `prodotto.html?key=${encodeURIComponent(key)}`;
+
+        const title = document.createElement('h5');
+        title.className = 'card-title';
+        title.textContent = key;
+        titleLink.appendChild(title);
+
+        const desc = document.createElement('p');
+        desc.className = 'card-text text-muted mb-2';
+        desc.textContent = p.descrizione || p.desc || p.description || '';
+
+        const bottom = document.createElement('div');
+        bottom.className = 'mt-auto d-flex justify-content-between align-items-center';
+
+        const price = document.createElement('strong');
+        price.className = 'text-primary';
+        price.textContent = p.prezzo ? `CHF ${p.prezzo}` : (p.price ? `CHF ${p.price}` : 'CHF --');
+
+        const btn = document.createElement('a');
+        btn.className = 'btn btn-sm btn-outline-primary';
+        btn.href = '#';
+        btn.textContent = 'Aggiungi';
+        btn.addEventListener('click', (e)=>{
+          e.preventDefault();
+          addToCart(p);
+        });
+
+        bottom.appendChild(price);
+        bottom.appendChild(btn);
+
+        body.appendChild(titleLink);
+        body.appendChild(desc);
+        body.appendChild(bottom);
+
+        card.appendChild(aImg);
+        card.appendChild(body);
+        col.appendChild(card);
+
+        return col;
+      }
+
+      // Funzioni carrello (localStorage)
+      function addToCart(item){
+        try{
+          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const key = (item.titolo || item.title || '').trim();
+          if(!key){
+            console.warn('Prodotto senza titolo, non aggiunto.');
+            return;
+          }
+          const prezzo = parseFloat(item.prezzo || item.price || 0) || 0;
+          const existing = cart.find(i => i.key === key);
+          if(existing){
+            existing.qty = (existing.qty || 1) + 1;
+          } else {
+            cart.push({
+              key,
+              titolo: key,
+              descrizione: item.descrizione || item.desc || item.description || '',
+              prezzo: prezzo,
+              image: item.image || 'media/product1.svg',
+              qty: 1
+            });
+          }
+          localStorage.setItem('cart', JSON.stringify(cart));
+          updateCartCount();
+          // piccolo feedback non intrusivo
+          const el = document.createElement('div');
+          el.className = 'toast align-items-center text-bg-light border shadow-sm';
+          el.role = 'alert';
+          el.ariaLive = 'assertive';
+          el.ariaAtomic = 'true';
+          el.style.position = 'fixed';
+          el.style.right = '20px';
+          el.style.bottom = '20px';
+          el.style.zIndex = 1080;
+          el.style.padding = '0.5rem 0.75rem';
+          el.textContent = key + ' aggiunto al carrello';
+          document.body.appendChild(el);
+          setTimeout(()=>{ el.remove(); },1500);
+        }catch(err){ console.error(err); }
+      }
+
+      function updateCartCount(){
+        try{
+          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const count = cart.reduce((s,i)=> s + (Number(i.qty)||0), 0);
+          const el = document.getElementById('cartCount');
+          if(el) el.textContent = count;
+        }catch(e){ console.error(e); }
+      }
+
+      function renderProducts(items){
+        const row = document.getElementById('productsRow');
+        row.innerHTML = '';
+        if(!items || items.length===0){
+          row.innerHTML = '<div class="col-12"><p class="text-muted">Nessun prodotto disponibile. Assicurati che il foglio "prodotti" sia pubblicato.</p></div>';
+          return;
+        }
+        items.forEach(p=>{
+          row.appendChild(createProductCard(p));
+        });
+      }
+
+      // Legge il file CSV locale `prodotti.csv` con SheetJS
+      async function loadProducts(){
+        try{
+          const res = await fetch(PRODUCTS_URL);
+          const text = await res.text();
+          const workbook = XLSX.read(text, { type: 'string' });
+          // preferisci foglio chiamato 'prodotti', altrimenti il primo disponibile
+          // scegli il foglio 'prodotti' (case-insensitive) oppure il primo foglio
+          const sheetName = workbook.SheetNames.find(n => (n||'').toLowerCase() === 'prodotti') || workbook.SheetNames[0];
+          const ws = workbook.Sheets[sheetName];
+          if(!ws) return renderProducts([]);
+          const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+          // mappa le intestazioni a chiavi canoniche: titolo, descrizione, prezzo, image
+          function mapRow(row){
+            const obj = {};
+            // normalizza input keys
+            Object.keys(row).forEach(k => { obj[k.toLowerCase().trim().replace(/\s+/g,'_')] = row[k]; });
+            const out = {};
+            out.titolo = obj.titolo || obj.title || obj.nome || obj.name || obj.product || obj['product_name'] || '';
+            out.descrizione = obj.descrizione || obj.description || obj.desc || obj.note || '';
+            out.prezzo = obj.prezzo || obj.price || obj.prezzo_chf || obj.prezzo_sfr || obj['prezzo(chf)'] || '';
+            out.categoria = obj.categoria || obj.category || obj.tipo || '';
+
+            // Raccogli immagini: campo 'image' (comma-separated) e colonne image1..image10, foto, immagine
+            const images = [];
+            const pushIf = v => { if(v || v === 0) { const s = String(v).trim(); if(s) images.push(s); } };
+            if(obj.image){ String(obj.image).split(/[,;]+/).map(s=>s.trim()).forEach(s=>{ if(s) images.push(s); }); }
+            if(obj.images){ String(obj.images).split(/[,;]+/).map(s=>s.trim()).forEach(s=>{ if(s) images.push(s); }); }
+            if(obj.foto) pushIf(obj.foto);
+            if(obj.immagine) pushIf(obj.immagine);
+            for(let i=1;i<=10;i++){ const k = 'image'+i; if(obj[k]) pushIf(obj[k]); }
+            out.images = images.map(s=>s.trim()).filter(Boolean);
+            out.image = out.images.length > 0 ? out.images[0] : (obj.image || obj.images || '');
+
+            return out;
+          }
+          const data = raw.map(mapRow);
+          renderProducts(data);
+        }catch(err){
+          console.error('Errore caricamento prodotti (CSV locale):', err);
+          renderProducts([]);
+        }
+      }
+
+      // Avvia il caricamento quando la pagina è pronta
+      document.addEventListener('DOMContentLoaded', ()=>{ loadProducts(); updateCartCount(); });
+    </script>
+  </body>
+</html>
