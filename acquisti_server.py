@@ -14,7 +14,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if self.path.endswith('.html'):
                     self.send_header('Content-type', 'text/html')
                 elif self.path.endswith('.css'):
-                    self.send_header('Content-type', 'text/css')
+                    self.send_header('Content-type', 'text/css') 
                 elif self.path.endswith('.js'):
                     self.send_header('Content-type', 'application/javascript')
                 elif self.path.endswith('.svg'):

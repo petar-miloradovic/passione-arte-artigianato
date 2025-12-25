@@ -1,4 +1,0 @@
-id,timestamp,email,nome,cognome,indirizzo,citta,cap,cantone,messaggio,items,subtotal,shipping,total,status
-1,2023-10-01T10:00:00.000Z,test@example.com,Mario,Rossi,Via Roma 1,Milano,20100,MI,Consegna veloce,"Porta candele in ceramica;35;1|Collana artigianale;22;2",79,5,84,da spedire
-2,2023-10-02T11:00:00.000Z,another@example.com,Luca,Bianchi,Piazza Duomo 5,Torino,10100,TO,,"Borsa in tessuto ricamato;49;1",49,5,54,da spedire
-3,2023-10-03T12:00:00.000Z,user@example.com,Giovanna,Verdi,Corso Italia 10,Napoli,80100,NA,Gentile consegna,"Set sottobicchieri in sughero;18;1",18,5,23,da spedire

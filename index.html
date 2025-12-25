@@ -103,8 +103,10 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Modalità locale: leggere da CSV (prodotti.csv) nella root del progetto
-      const PRODUCTS_URL = 'prodotti.csv';
+      // Modalità Google Sheet: leggere da export XLSX
+      // Sostituisci 'INSERISCI_IL_TUO_ID_QUI' con l'ID del tuo Google Sheet
+      const SHEET_ID = '1uftev9VfpdMT2thbdJ2YNXXg_0jRTwGC_lkBSFjUY9w';
+      const PRODUCTS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=inventario`;
 
       function createProductCard(p){
         const col = document.createElement('div');
@@ -123,6 +125,8 @@
         img.className = 'card-img-top product-img';
         img.alt = p.image || p.titolo || 'prodotto';
         img.src = p.image || 'media/product1.svg';
+        img.referrerPolicy = 'no-referrer'; // Risolve il blocco di Google Drive
+        img.onerror = function(){ this.src = 'media/product1.svg'; }; // Fallback se l'immagine non carica
         // galleria on-hover: se ci sono più immagini, scorre al passaggio del mouse
         if(p.images && Array.isArray(p.images) && p.images.length > 1){
           let idx = 0;
@@ -243,7 +247,7 @@
         const row = document.getElementById('productsRow');
         row.innerHTML = '';
         if(!items || items.length===0){
-          row.innerHTML = '<div class="col-12"><p class="text-muted">Nessun prodotto disponibile. Assicurati che il foglio "prodotti" sia pubblicato.</p></div>';
+          row.innerHTML = '<div class="col-12"><p class="text-muted">Nessun prodotto disponibile. Assicurati che il foglio Google sia pubblicato e che il foglio (tab) si chiami "inventario".</p></div>';
           return;
         }
         items.forEach(p=>{
@@ -251,18 +255,38 @@
         });
       }
 
-      // Legge il file CSV locale `prodotti.csv` con SheetJS
       async function loadProducts(){
         try{
+          if(SHEET_ID === 'INSERISCI_IL_TUO_ID_QUI') {
+            document.getElementById('productsRow').innerHTML = '<div class="col-12"><div class="alert alert-warning">Attenzione: Devi inserire l\'ID del tuo Google Sheet nel codice (variabile SHEET_ID).</div></div>';
+            return;
+          }
           const res = await fetch(PRODUCTS_URL);
+          if(!res.ok) throw new Error('Errore nel caricamento del foglio Google');
           const text = await res.text();
           const workbook = XLSX.read(text, { type: 'string' });
-          // preferisci foglio chiamato 'prodotti', altrimenti il primo disponibile
-          // scegli il foglio 'prodotti' (case-insensitive) oppure il primo foglio
-          const sheetName = workbook.SheetNames.find(n => (n||'').toLowerCase() === 'prodotti') || workbook.SheetNames[0];
-          const ws = workbook.Sheets[sheetName];
+          
+          // Con il formato CSV, otteniamo un solo foglio (quello richiesto nell'URL)
+          const ws = workbook.Sheets[workbook.SheetNames[0]];
           if(!ws) return renderProducts([]);
           const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+          
+          // Helper per convertire link Google Drive in link diretti
+          const fixUrl = (url) => {
+            if(!url) return '';
+            let u = String(url).trim();
+            if(u.includes('drive.google.com') && u.includes('/d/')){
+              const match = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+              if(match && match[1]) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+            }
+            // Supporto per link formato "open?id="
+            if(u.includes('drive.google.com') && u.includes('id=')){
+              const match = u.match(/id=([a-zA-Z0-9_-]+)/);
+              if(match && match[1]) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+            }
+            return u;
+          };
+
           // mappa le intestazioni a chiavi canoniche: titolo, descrizione, prezzo, image
           function mapRow(row){
             const obj = {};
@@ -281,17 +305,22 @@
             if(obj.images){ String(obj.images).split(/[,;]+/).map(s=>s.trim()).forEach(s=>{ if(s) images.push(s); }); }
             if(obj.foto) pushIf(obj.foto);
             if(obj.immagine) pushIf(obj.immagine);
-            for(let i=1;i<=10;i++){ const k = 'image'+i; if(obj[k]) pushIf(obj[k]); }
-            out.images = images.map(s=>s.trim()).filter(Boolean);
-            out.image = out.images.length > 0 ? out.images[0] : (obj.image || obj.images || '');
+            for(let i=1;i<=10;i++){ 
+              if(obj['image'+i]) pushIf(obj['image'+i]);
+              else if(obj['image_'+i]) pushIf(obj['image_'+i]); // Supporta "Image 1" -> "image_1"
+            }
+            out.images = images.map(s=>fixUrl(s)).filter(Boolean);
+            out.image = out.images.length > 0 ? out.images[0] : fixUrl(obj.image || obj.images || '');
 
             return out;
           }
           const data = raw.map(mapRow);
           renderProducts(data);
         }catch(err){
-          console.error('Errore caricamento prodotti (CSV locale):', err);
-          renderProducts([]);
+          console.error('Errore caricamento prodotti (Google Sheet):', err);
+          // Mostra l'errore specifico a video invece del messaggio generico
+          const row = document.getElementById('productsRow');
+          row.innerHTML = `<div class="col-12"><div class="alert alert-danger">Errore caricamento: <strong>${err.message}</strong>.<br>Verifica che il foglio Google sia condiviso con "Chiunque abbia il link" (Visualizzatore).</div></div>`;
         }
       }
 

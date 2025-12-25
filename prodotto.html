@@ -31,8 +31,9 @@
     </footer>
 
     <script>
-      // Modalità locale: leggere CSV prodotti.csv nella root del progetto
-      const PRODUCTS_URL = 'prodotti.csv';
+      // Modalità Google Sheet
+      const SHEET_ID = '1uftev9VfpdMT2thbdJ2YNXXg_0jRTwGC_lkBSFjUY9w';
+      const PRODUCTS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=inventario`;
 
       function getQueryParam(name){
         const params = new URLSearchParams(window.location.search);
@@ -75,11 +76,24 @@
           const res = await fetch(PRODUCTS_URL);
           const text = await res.text();
           const workbook = XLSX.read(text, { type: 'string' });
-          // scegli il foglio 'prodotti' (case-insensitive) o il primo foglio
-          const sheetName = workbook.SheetNames.find(n => (n||'').toLowerCase() === 'prodotti') || workbook.SheetNames[0];
-          const ws = workbook.Sheets[sheetName];
+          // Con CSV da Google, prendiamo il primo foglio disponibile
+          const ws = workbook.Sheets[workbook.SheetNames[0]];
           if(!ws){ area.innerHTML = '<p class="text-muted">Prodotto non trovato.</p>'; return; }
           const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+          // Helper per immagini Drive
+          const fixUrl = (url) => {
+            if(!url) return '';
+            let u = String(url).trim();
+            if(u.includes('drive.google.com')){
+              let id = '';
+              if(u.includes('/d/')) id = u.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
+              else if(u.includes('id=')) id = u.match(/id=([a-zA-Z0-9_-]+)/)?.[1];
+              if(id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+            }
+            return u;
+          };
+
           function mapRow(row){
             const obj = {};
             Object.keys(row).forEach(k => { obj[k.toLowerCase().trim().replace(/\s+/g,'_')] = row[k]; });
@@ -99,11 +113,14 @@
             if(obj.foto) pushIf(obj.foto);
             if(obj.immagine) pushIf(obj.immagine);
             // image1..image10
-            for(let i=1;i<=10;i++){ const k = 'image'+i; if(obj[k]) pushIf(obj[k]); }
+            for(let i=1;i<=10;i++){ 
+              if(obj['image'+i]) pushIf(obj['image'+i]);
+              else if(obj['image_'+i]) pushIf(obj['image_'+i]); // Supporta "Image 1" -> "image_1"
+            }
 
             // unique and clean
-            out.images = images.map(s=>s.trim()).filter(Boolean);
-            out.image = out.images.length > 0 ? out.images[0] : (obj.image || obj.images || '');
+            out.images = images.map(s=>fixUrl(s)).filter(Boolean);
+            out.image = out.images.length > 0 ? out.images[0] : fixUrl(obj.image || obj.images || '');
 
             return out;
           }
@@ -126,7 +143,7 @@
             carouselIndicators += `<button type="button" data-bs-target="#productCarousel" data-bs-slide-to="${i}" ${i===0? 'class="active" aria-current="true"':''} aria-label="Slide ${i+1}"></button>`;
             carouselItems += `
               <div class="carousel-item ${i===0? 'active':''}">
-                <img src="${src}" class="d-block w-100" alt="immagine ${i+1}" style="height:420px; object-fit:cover; background:#e2e8f0">
+                <img src="${src}" class="d-block w-100" alt="immagine ${i+1}" style="height:420px; object-fit:cover; background:#e2e8f0" referrerpolicy="no-referrer">
               </div>
             `;
           });

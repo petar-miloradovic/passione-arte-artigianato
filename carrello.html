@@ -56,10 +56,17 @@
 
         let html = '<div class="list-group">';
         cart.forEach((item, idx) => {
+          // Correzione al volo per immagini Drive vecchie nel carrello
+          let imgSrc = item.image;
+          if(imgSrc && imgSrc.includes('drive.google.com') && !imgSrc.includes('thumbnail')){
+             const match = imgSrc.match(/id=([a-zA-Z0-9_-]+)/);
+             if(match && match[1]) imgSrc = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+          }
+
           const encodedKey = encodeURIComponent(item.titolo || '');
           html += `
             <div class="list-group-item d-flex gap-3 py-3">
-              <a href="prodotto.html?key=${encodedKey}"><img src="${item.image}" alt="${item.titolo}" width="86" height="86" class="flex-shrink-0 rounded-2" style="object-fit:cover; background:#f8f9fa"></a>
+              <a href="prodotto.html?key=${encodedKey}"><img src="${imgSrc}" alt="${item.titolo}" width="86" height="86" class="flex-shrink-0 rounded-2" style="object-fit:cover; background:#f8f9fa" referrerpolicy="no-referrer"></a>
               <div class="d-flex gap-2 w-100 justify-content-between">
                 <div>
                   <h6 class="mb-0"><a href="prodotto.html?key=${encodedKey}" class="text-body text-decoration-none">${item.titolo}</a></h6>
