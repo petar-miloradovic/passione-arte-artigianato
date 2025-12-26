@@ -143,7 +143,7 @@
             carouselIndicators += `<button type="button" data-bs-target="#productCarousel" data-bs-slide-to="${i}" ${i===0? 'class="active" aria-current="true"':''} aria-label="Slide ${i+1}"></button>`;
             carouselItems += `
               <div class="carousel-item ${i===0? 'active':''}">
-                <img src="${src}" class="d-block w-100" alt="immagine ${i+1}" style="height:420px; object-fit:cover; background:#e2e8f0" referrerpolicy="no-referrer">
+                <img src="${src}" class="d-block w-100" alt="immagine ${i+1}" style="height:420px; object-fit:contain; background:#f1f3f5" referrerpolicy="no-referrer">
               </div>
             `;
           });
@@ -166,6 +166,7 @@
               </div>
               <div class="col-md-6">
                 <h2 class="mb-2">${prod.titolo || prod.title || ''}</h2>
+                ${prod.categoria ? `<span class="badge bg-secondary mb-2">${prod.categoria}</span>` : ''}
                 <div class="mb-3 text-muted">${formatCHF(prod.prezzo || prod.price || 0)}</div>
                 <p class="text-muted">${prod.descrizione || prod.desc || prod.description || ''}</p>
                 <div class="d-flex gap-2 mt-4">
