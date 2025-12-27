@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
+    <!-- Navbar semplificata -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
       <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="index.html">
@@ -18,184 +19,189 @@
     </nav>
 
     <main class="container py-5">
-      <h1 class="h4 mb-4">Dati per la consegna e pagamento</h1>
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="text-center mb-4">
+            <h1 class="h3">Pagamento</h1>
+            <p class="text-muted">Importo totale da pagare:</p>
+            <h2 class="display-4 fw-bold text-primary" id="displayTotal">CHF 0.00</h2>
+          </div>
 
-      <div class="row">
-        <!-- Colonna Sinistra: Form per inserimento dati spedizione -->
-        <div class="col-md-7">
-          <form id="paymentForm">
-            <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input type="email" id="email" class="form-control" required>
-            </div>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Nome</label>
-                <input id="nome" class="form-control" required>
+          <!-- Accordion Pagamenti -->
+          <div class="accordion shadow-sm mb-4" id="paymentAccordion">
+            
+            <!-- TWINT -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingTwint">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwint" aria-expanded="true" aria-controls="collapseTwint">
+                  <strong>TWINT</strong>
+                </button>
+              </h2>
+              <div id="collapseTwint" class="accordion-collapse collapse show" aria-labelledby="headingTwint" data-bs-parent="#paymentAccordion">
+                <div class="accordion-body text-center">
+                  <p class="mb-3">Invia l'importo al numero:</p>
+                  <div class="alert alert-light border d-inline-block">
+                    <strong id="twintNumber" class="fs-5">079 XX XX XXX</strong>
+                  </div>
+                  <div class="mb-3">
+                    <button id="copyTwintBtn" class="btn btn-sm btn-outline-secondary">Copia numero</button>
+                  </div>
+                  <div class="mb-3 text-start">
+                    <label for="payerNameTwint" class="form-label">Nome del pagatore (Richiesto)</label>
+                    <input type="text" class="form-control" id="payerNameTwint" placeholder="Inserisci il nome" required>
+                  </div>
+                  <button class="btn btn-success w-100 py-2 confirm-payment-btn" data-method="TWINT">Conferma pagamento TWINT</button>
+                </div>
               </div>
-              <div class="col-md-6">
-                <label class="form-label">Cognome</label>
-                <input id="cognome" class="form-control" required>
-              </div>
-            </div>
-            <div class="mb-3 mt-3">
-              <label class="form-label">Indirizzo</label>
-              <input id="indirizzo" class="form-control" required>
-            </div>
-            <div class="row g-3">
-              <div class="col-md-5">
-                <label class="form-label">Città</label>
-                <input id="citta" class="form-control" required>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">CAP</label>
-                <input id="cap" class="form-control" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Cantone</label>
-                <input id="cantone" class="form-control" required>
-              </div>
-            </div>
-            <div class="mb-3 mt-3">
-              <label class="form-label">Messaggio per il corriere (opzionale)</label>
-              <textarea id="messaggio" class="form-control" rows="3"></textarea>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mt-4">
-              <a href="carrello.html" class="btn btn-outline-secondary">Torna al carrello</a>
-              <button type="submit" class="btn btn-primary">Conferma e paga</button>
+            <!-- PayPal -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingPaypal">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePaypal" aria-expanded="false" aria-controls="collapsePaypal">
+                  <strong>PayPal</strong>
+                </button>
+              </h2>
+              <div id="collapsePaypal" class="accordion-collapse collapse" aria-labelledby="headingPaypal" data-bs-parent="#paymentAccordion">
+                <div class="accordion-body text-center">
+                  <p class="mb-3">Invia l'importo all'indirizzo email:</p>
+                  <div class="alert alert-light border d-inline-block">
+                    <strong id="paypalEmail" class="fs-5">info@passione-arte.ch</strong>
+                  </div>
+                  <div class="mb-3">
+                    <button id="copyPaypalBtn" class="btn btn-sm btn-outline-secondary">Copia email</button>
+                  </div>
+                  <div class="mb-3 text-start">
+                    <label for="payerNamePaypal" class="form-label">Nome del pagatore (Richiesto)</label>
+                    <input type="text" class="form-control" id="payerNamePaypal" placeholder="Inserisci il nome" required>
+                  </div>
+                  <button class="btn btn-primary w-100 py-2 confirm-payment-btn" data-method="PayPal">Conferma pagamento PayPal</button>
+                </div>
+              </div>
             </div>
-          </form>
-        </div>
 
-        <!-- Colonna Destra: Riepilogo visivo del carrello e totali -->
-        <div class="col-md-5">
-          <div class="card p-3">
-            <h5 class="mb-3">Riepilogo ordine</h5>
-            <div id="orderSummary"></div>
-            <div class="mt-3 d-flex justify-content-between"><div>Totale</div><div id="orderTotal" class="fw-bold">CHF 0.00</div></div>
+          </div>
+
+          <div class="text-center">
+            <a href="spedizione.html" class="text-muted text-decoration-none">&larr; Torna ai dati di spedizione</a>
           </div>
         </div>
       </div>
     </main>
 
-    <footer class="py-4">
-      <div class="container d-flex justify-content-between align-items-center">
-        <small class="text-muted">© 2025 Passione Arte</small>
-      </div>
-    </footer>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Funzione di utilità per formattare un numero come valuta (CHF)
-      // Esempio: 12.5 -> "CHF 12.50"
+      // Endpoint Google Apps Script (Spostato qui da pagamento.html)
+      const PURCHASE_ENDPOINT = "https://script.google.com/macros/s/AKfycbycmaO2dNdC0arOL3EX4frQHv9VcUW2ioWiF107HQt-6qQE5cZckiSiPROZWGaYCuaCcQ/exec";
+
       function formatCHF(v){ return 'CHF ' + (Number(v)||0).toFixed(2); }
 
-      // Funzione robusta per interpretare i numeri (prezzi)
-      // Accetta numeri o stringhe sporche come "CHF 12,50" o "12.50" e restituisce un float pulito.
-      function parseNumber(v){
-        if(typeof v === 'number') return v || 0;
-        if(!v) return 0;
-        let s = String(v).trim();
-        // Rimuove tutto ciò che non è cifra, punto, virgola o meno
-        s = s.replace(/[^0-9,\.\-]+/g, '');
-        // Sostituisce la virgola con il punto per standard JS
-        s = s.replace(/,/g, '.');
-        const n = parseFloat(s);
-        return isNaN(n) ? 0 : n;
-      }
-
-      // Funzione principale per caricare e mostrare il riepilogo dell'ordine
-      function loadSummary(){
-        // Legge il carrello dal LocalStorage del browser
-        const cart = JSON.parse(localStorage.getItem('cart')||'[]');
-        const sumEl = document.getElementById('orderSummary');
+      document.addEventListener('DOMContentLoaded', () => {
+        // Recupera l'ordine pendente salvato da pagamento.html
+        const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder'));
         
-        // Se il carrello è vuoto, mostra messaggio e ferma l'esecuzione
-        if(!cart || cart.length===0){ 
-          sumEl.innerHTML = '<p class="text-muted">Carrello vuoto.</p>'; 
-          document.getElementById('orderTotal').textContent = formatCHF(0); 
-          return; 
+        if (!pendingOrder) {
+          alert('Nessun ordine trovato. Torna al carrello.');
+          window.location.href = 'carrello.html';
+          return;
         }
 
-        let html = '<div class="list-group">';
-        let itemsTotal = 0;
-        
-        // Itera su ogni prodotto nel carrello per creare la lista HTML
-        cart.forEach(it=>{
-          const price = parseNumber(it.prezzo || it.price || 0);
-          const qty = Number(it.qty||0) || 0;
-          const line = price * qty;
-          itemsTotal += line;
-          // Aggiunge riga prodotto
-          html += `<div class="list-group-item d-flex justify-content-between align-items-center py-2"><div><strong>${it.titolo}</strong><div class="small text-muted">x${qty} · ${formatCHF(price)}</div></div><div class="fw-semibold">${formatCHF(line)}</div></div>`;
+        // Mostra il totale
+        document.getElementById('displayTotal').textContent = formatCHF(pendingOrder.total);
+
+        // Gestione copia numero TWINT
+        const copyBtn = document.getElementById('copyTwintBtn');
+        if(copyBtn){
+          copyBtn.addEventListener('click', () => {
+            const number = document.getElementById('twintNumber').textContent;
+            navigator.clipboard.writeText(number).then(() => {
+              const originalText = copyBtn.textContent;
+              copyBtn.textContent = 'Copiato!';
+              copyBtn.classList.remove('btn-outline-secondary');
+              copyBtn.classList.add('btn-success');
+              setTimeout(() => {
+                copyBtn.textContent = originalText;
+                copyBtn.classList.remove('btn-success');
+                copyBtn.classList.add('btn-outline-secondary');
+              }, 2000);
+            });
+          });
+        }
+
+        // Gestione copia email PayPal
+        const copyPaypalBtn = document.getElementById('copyPaypalBtn');
+        if(copyPaypalBtn){
+          copyPaypalBtn.addEventListener('click', () => {
+            const email = document.getElementById('paypalEmail').textContent;
+            navigator.clipboard.writeText(email).then(() => {
+              const originalText = copyPaypalBtn.textContent;
+              copyPaypalBtn.textContent = 'Copiato!';
+              copyPaypalBtn.classList.remove('btn-outline-secondary');
+              copyPaypalBtn.classList.add('btn-success');
+              setTimeout(() => {
+                copyPaypalBtn.textContent = originalText;
+                copyPaypalBtn.classList.remove('btn-success');
+                copyPaypalBtn.classList.add('btn-outline-secondary');
+              }, 2000);
+            });
+          });
+        }
+
+        // Gestione click pulsanti di conferma (Twint o PayPal)
+        document.querySelectorAll('.confirm-payment-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const method = btn.getAttribute('data-method');
+            let payerNameInput;
+            
+            if (method === 'TWINT') {
+              payerNameInput = document.getElementById('payerNameTwint');
+            } else {
+              payerNameInput = document.getElementById('payerNamePaypal');
+            }
+            
+            const payerName = payerNameInput.value.trim();
+
+            if(!payerName) {
+              alert('Per favore inserisci il Nome del pagatore.');
+              payerNameInput.focus();
+              return;
+            }
+
+            // Disabilita tutti i bottoni
+            document.querySelectorAll('.confirm-payment-btn').forEach(b => b.disabled = true);
+            
+            const originalText = btn.textContent;
+            btn.textContent = 'Elaborazione in corso...';
+
+            // Aggiunge info pagamento all'ordine
+            pendingOrder.paymentMethod = String(method);
+            pendingOrder.payerName = String(payerName);
+
+            try {
+              // Invia i dati a Google Sheets
+              const res = await fetch(PURCHASE_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(pendingOrder)
+              });
+
+              if (res.ok) {
+                // Successo: pulizia carrello e ordine pendente, poi redirect
+                localStorage.removeItem('cart');
+                localStorage.removeItem('pendingOrder');
+                alert('Grazie! Il tuo ordine è stato registrato.');
+                window.location.href = 'index.html';
+              } else {
+                throw new Error('Risposta server non valida');
+              }
+            } catch (err) {
+              console.error(err);
+              alert('Si è verificato un errore nel salvataggio dell\'ordine. Contattaci se il problema persiste.');
+              document.querySelectorAll('.confirm-payment-btn').forEach(b => b.disabled = false);
+              btn.textContent = originalText;
+            }
+          });
         });
-        html += '</div>';
-        
-        // Regola Spedizione: 5 CHF se c'è merce e il totale è sotto i 100 CHF, altrimenti Gratis (0)
-        const shipping = (cart.length > 0 && itemsTotal < 100) ? 5 : 0;
-        const grand = itemsTotal + shipping;
-        
-        // Aggiunge la sezione dei totali (Subtotale, Spedizione, Totale finale)
-        html += `<div class="mt-3"><div class="d-flex justify-content-between"><div>Subtotale</div><div>${formatCHF(itemsTotal)}</div></div><div class="d-flex justify-content-between"><div>Spedizione</div><div>${formatCHF(shipping)}</div></div><hr><div class="d-flex justify-content-between"><div class="fw-semibold">Totale</div><div class="fw-bold">${formatCHF(grand)}</div></div><div class="mt-2"><small class="text-muted">La spedizione è CHF 5 (gratuita per ordini pari o superiori a CHF 100).</small></div></div>`;
-        
-        // Inserisce l'HTML generato nella pagina
-        sumEl.innerHTML = html;
-        document.getElementById('orderTotal').textContent = formatCHF(grand);
-      }
-
-      // Al caricamento della pagina (DOM pronto)
-      document.addEventListener('DOMContentLoaded', ()=>{
-        loadSummary();
-        // Opzionale: Precompila i campi se l'utente aveva già inserito dati in precedenza (salvati in 'buyer')
-        const buyer = JSON.parse(localStorage.getItem('buyer')||'{}');
-        if(buyer){ 
-          if(buyer.email) document.getElementById('email').value = buyer.email; 
-          if(buyer.nome) document.getElementById('nome').value = buyer.nome; 
-          if(buyer.cognome) document.getElementById('cognome').value = buyer.cognome; 
-        }
-      });
-
-      // Gestione dell'invio del modulo (Click su "Conferma e paga")
-      document.getElementById('paymentForm').addEventListener('submit', async (e)=>{
-        e.preventDefault(); // Blocca il ricaricamento della pagina standard
-        
-        const cart = JSON.parse(localStorage.getItem('cart')||'[]');
-        if(!cart || cart.length===0){ alert('Carrello vuoto'); return; }
-        
-        // Ricalcola i totali per sicurezza (deve coincidere con la visualizzazione)
-        let itemsTotal = 0;
-        cart.forEach(it => { itemsTotal += parseNumber(it.prezzo || it.price || 0) * (Number(it.qty)||0); });
-        
-        // Logica spedizione
-        const shipping = (cart.length > 0 && itemsTotal < 100) ? 5 : 0;
-        const grandTotal = itemsTotal + shipping;
-        
-        // Costruisce l'oggetto dati (payload) da inviare al server
-        const payload = {
-          timestamp: new Date().toISOString(),
-          buyer: {
-            email: document.getElementById('email').value.trim(),
-            nome: document.getElementById('nome').value.trim(),
-            cognome: document.getElementById('cognome').value.trim(),
-            indirizzo: document.getElementById('indirizzo').value.trim(),
-            citta: document.getElementById('citta').value.trim(),
-            cap: document.getElementById('cap').value.trim(),
-            cantone: document.getElementById('cantone').value.trim(),
-            messaggio: document.getElementById('messaggio').value.trim()
-          },
-          items: cart,
-          subtotal: itemsTotal,
-          shipping: shipping,
-          total: grandTotal
-        };
-
-        // Salva i dati utente nel LocalStorage per comodità futura
-        localStorage.setItem('buyer', JSON.stringify(payload.buyer));
-
-        // Salva l'ordine temporaneo e reindirizza alla pagina di pagamento TWINT
-        localStorage.setItem('pendingOrder', JSON.stringify(payload));
-        window.location.href = 'twint.html';
       });
     </script>
   </body>

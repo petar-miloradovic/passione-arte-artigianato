@@ -135,12 +135,12 @@
 
       // Configura qui l'endpoint Apps Script (web app) che popolerà il foglio `acquisti`.
       // Esempio: 'https://script.google.com/macros/s/AKfycbx.../exec'
-      // Procedi al pagamento: apri la pagina `pagamento.html` che mostra il form.
+      // Procedi al pagamento: apri la pagina `spedizione.html` che mostra il form.
       document.getElementById('checkoutBtn').addEventListener('click', ()=>{
         const cart = JSON.parse(localStorage.getItem('cart')||'[]');
         if(!cart || cart.length===0){ alert('Il carrello è vuoto.'); return; }
-        // apri la pagina di pagamento, i dati del carrello vengono letti da localStorage
-        window.location.href = 'pagamento.html';
+        // apri la pagina di spedizione, i dati del carrello vengono letti da localStorage
+        window.location.href = 'spedizione.html';
       });
 
       document.addEventListener('DOMContentLoaded', loadCart);
